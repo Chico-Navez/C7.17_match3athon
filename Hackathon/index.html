@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title></title>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+    <style type="text/css">
+        body{
+            margin: 0;
+            padding:0 10%;
+        }
+        .gameItem{
+            width:12.5%;
+            height: 12.6vh;
+            background-size: cover;
+            display: inline-block;
+            margin-bottom: -4px;
+            box-sizing: border-box;
+            border: 1px solid black;
+        }
+        .gameItem:hover{
+            opacity: 0.7;
+        }
+        .selectables{
+            -moz-box-shadow: inset 0 0 10px #000000;
+            -webkit-box-shadow: inset 0 0 10px #000000;
+            box-shadow: inset 0 0 10px #000000;
+        }
+
+    </style>
+</head>
+<body>
+
+
+<script type="text/javascript">
+    // $( document ).ready(function() {});
+
+    var x1;
+    var y1;
+    var x2;
+    var y2;
+    var firstClick = null;
+    var secondClick = null;
+    var down = null;
+    var up = null;
+    var left = null;
+    var right = null;
+    var matches=null;
+    var gemType=null;
+    var current;
+
+    var colorArray = ['blue.png', 'green.png', 'orange.png', 'purple.png', 'red.png', 'yellow.png'];
+    var numbergrid = [[1,2,3,4,5,6,7,8],
+        [1,2,3,4,5,6,7,8],
+        [1,2,3,4,5,6,7,8],
+        [1,2,3,4,5,6,7,8],
+        [1,2,3,4,5,6,7,8],
+        [1,2,3,4,5,6,7,8],
+        [1,2,3,4,5,6,7,8],
+        [1,2,3,4,5,6,7,8]];
+    var colorgrid = [
+        [],
+        [],
+        [],
+        [],
+        [],
+        [],
+        [],
+        []
+    ];
+    createColorArray();
+    function createColorArray(){
+        $('body').append("<div id='gameBoard'></div>");
+        for(var i=0; i<numbergrid.length; i++){
+            for(var j=0; j<numbergrid[i].length; j++){
+                var randomColor = colorArray[Math.floor(Math.random()*colorArray.length)];
+                colorgrid[i].push(randomColor);
+                // console.log(randomColor, " pushed")
+            }
+        }
+        createGrid();
+    }
+    function createGrid(){
+        for(var i=0; i<colorgrid.length; i++){
+            for(var j=0; j< colorgrid[i].length; j++){
+                $('#gameBoard').append("<div class='gameItem' y="+ i +" x="+ j +" style='background-image:url(images/"+colorgrid[i][j]+")'></div>");
+            }
+        }
+        console.log('body created');
+        applyHandlers()
+    }
+    
+
+    //Click Handler
+    function applyHandlers(){
+        $('.gameItem').on('click', function(){
+            if (firstClick === null){
+                firstClickAssign(this);
+            } else if($(this).hasClass('selectables')){
+                secondClickAssign(this);
+                switchClicks();
+            } else {
+                firstClick = null;
+                toggleSelectables();
+                firstClickAssign(this);
+            }
+
+        });
+    }
+    //Grid Navigating
+    function firstClickAssign(click){
+        // console.log(click);
+        x1 = parseInt($(click).attr('x'));
+        y1 = parseInt($(click).attr('y'));
+        firstClick = colorgrid[y1][x1];
+
+        up = ".gameItem[x='" + x1+ "'][y='" + (y1-1) + "']";
+        down = '.gameItem[x="' + x1 + '"][y="' + (y1+1) + '"]';
+        left = '.gameItem[x="' + (x1-1) + '"][y="' + y1 + '"]';
+        right = '.gameItem[x="' + (x1+1) + '"][y="' + y1 + '"]';
+
+        toggleSelectables()
+    };
+    //Toggle Selection
+    function toggleSelectables(){
+        $(down).toggleClass('selectables');
+        $(up).toggleClass('selectables');
+        $(left).toggleClass('selectables');
+        $(right).toggleClass('selectables');
+    }
+    function secondClickAssign(click){
+        // console.log(click);
+        x2 = parseInt($(click).attr('x'));
+        y2 = parseInt($(click).attr('y'));
+        secondClick = colorgrid[y2][x2];
+    }
+    function switchClicks(){
+        colorgrid[y1][x1] = secondClick;
+        colorgrid[y2][x2] = firstClick;
+        $('#gameBoard').html('');
+        compareSelection();
+        createGrid();
+        resetValues();
+    }
+    function compareSelection() {
+
+
+
+        for (j = 0; j < colorgrid.length; j++) {
+            matches = 0;
+            gemType;
+            for (i = 0; i < colorgrid[0].length; i++) {
+                if (colorgrid[j][i] == gemType) {         //j=y i=x
+                    matches++;
+                }
+                if (colorgrid[j][i] != gemType || j == colorgrid[0].length) {
+                    if (matches >= 3) {
+                        var x = i;
+
+                        for(h=0; h<matches; h++){
+                            current = ".gameItem[y='" + j + "'][x='" + x--+ "']";
+                            var randomColor = colorArray[Math.floor(Math.random()*colorArray.length)];
+                            colorgrid[j].splice(x,1);
+                            colorgrid[j].push(randomColor);
+                            console.log(current);
+                        }
+                    }
+                    gemType = colorgrid[j][i];
+                    matches = 1;
+                }
+            }
+        }
+        for (j = 0; j < colorgrid.length; j++) {
+            matches = 0;
+            gemType;
+            for (i = 0; i < colorgrid[0].length; i++) {    //i=y j=x
+                if (colorgrid[i][j] == gemType) {
+                    matches++;
+                }
+                if (colorgrid[i][j] != gemType || j == colorgrid[0].length) {
+                    if (matches >= 3) {
+                        var y = i;
+                        for(h=0; h<matches; h++){
+                        	current = ".gameItem[y='" + y-- + "'][x='" + j + "']";
+                        	var randomColor = colorArray[Math.floor(Math.random()*colorArray.length)];
+                        	colorgrid[y].splice(j,1);
+                        	colorgrid[y].push(randomColor);
+                        }
+                    }
+                    gemType = colorgrid[i][j];
+                    matches = 1;
+                }
+            }
+        }
+    }
+
+
+
+
+
+
+
+
+
+    function resetValues(){
+        firstClick = null;
+        secondClick = null;
+        x1 = null;
+        y1 = null;
+        x2 = null;
+        y2 = null;
+    }
+
+
+</script>
+</body>
+</html>
